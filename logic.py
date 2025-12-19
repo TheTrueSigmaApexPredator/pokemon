@@ -1,5 +1,6 @@
 from random import randint
 import requests
+from datetime import datetime, timedelta
 
 class Pokemon:
     pokemons = {}
@@ -15,12 +16,9 @@ class Pokemon:
         self.hunger = randint(20, 70) 
         self.power = randint(30, 90)
         self.hp = randint(200, 400)
-
+        self.last_feed_time = datetime.now()
         Pokemon.pokemons[pokemon_trainer] = self
 
-    # Метод для получения картинки покемона через API
-    def get_img(self):
-        pass
     
     # Метод для получения имени покемона через API
     def get_name(self):
@@ -48,25 +46,10 @@ class Pokemon:
 
         
 
-
-    def feed(self, food_type="обычная"):
-        if self.hunger <= 0:
-            return f"{self.name} не голоден!"
-        
-        food_effects = {
-            "обычная еда": {"hunger": -20},
-            "ягода": {"hunger": -30},
-            "эликсир": {"hunger": -50},
-            "торт": {"hunger": -40}
-        }
+    
 
         
         
-        effect = food_effects.get(food_type, food_effects["обычная еда"])
-        self.hunger = max(0, self.hunger + effect["hunger"])
-        response = f"{self.name} покормлен({food_type})! Сытость: {100 - self.hunger}%"
-
-        return response
     
     
     def hunger_status(self):
@@ -116,7 +99,15 @@ class Pokemon:
         return self.img
     
 
-
+    def feed(self, feed_interval = 20, hp_increase = 10):
+        current_time = datetime.now()  
+        delta_time = timedelta(seconds=feed_interval)  
+        if (current_time - self.last_feed_time) > delta_time:
+            self.hp += hp_increase
+            self.last_feed_time = current_time
+            return f"Здоровье покемона увеличено. Текущее здоровье: {self.hp}"
+        else:
+            return f"Следующее время кормления покемона: {self.last_feed_time+delta_time}"
 
 
 
@@ -145,4 +136,4 @@ class Fighter(Pokemon):
         self.power += super_power
         result = super().attack(enemy)
         self.power -= super_power
-        return result + f'\nБоец примеил супер атаку силой {super_power}'
+        return result + f'\nБоец применил супер атаку силой {super_power}'

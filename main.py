@@ -1,11 +1,12 @@
 import telebot
 from random import randint
 from config import token
-from logic import Pokemon, Wizard, Fighter
+from logic import Pokemon, Wizard, Fighter 
+from datetime import datetime, timedelta
 
 bot = telebot.TeleBot(token) 
 
-@bot.message_handler(commands=['go'])
+@bot.message_handler(commands=['start'])
 def start(message):
     if message.from_user.username not in Pokemon.pokemons.keys():
         chance = randint(1, 3)
@@ -53,5 +54,47 @@ def attack_pok(message):
     else:
         bot.send_message(message.chat.id, 
                          "Чтобы атаковать, нужно ответить на сообщения того, кого хочешь атаковать")
+        
+
+        
+@bot.message_handler(commands=['feed'])
+def feed_pokemon(message):
+    if message.from_user.username in Pokemon.pokemons.keys():
+        pokemon = Pokemon.pokemons[message.from_user.username]
+        result = pokemon.feed()
+        bot.reply_to(message, result)
+    else:
+        bot.send_message(message.chat.id, "У тебя еще нет покемона! Используй /start чтобы создать своего покемона.")
+    
+
+
+
+@bot.message_handler(commands=['info'])
+def show_info(message):
+    if message.from_user.username in Pokemon.pokemons.keys():
+        pok = Pokemon.pokemons[message.from_user.username]
+        if isinstance(pok, Wizard):
+            pokemon_type = "Волшебник"
+            special_ability = "Имеет щит для защиты"
+        elif isinstance(pok, Fighter):
+            pokemon_type = "Боец"
+            special_ability = "Имеет шанс нанести критический удар"
+        else:
+            pokemon_type = "Обычный"
+            special_ability = "Нет особых способностей"
+        info_text = f"Информация о покемоне:\n\n"
+        info_text += f"Тренер: {pok.pokemon_trainer}\n"
+        info_text += f"Номер: #{pok.pokemon_number}\n"
+        info_text += f"Имя: {pok.name}\n"
+        info_text += f"Вес: {pok.weight} кг\n"
+        info_text += f"Здоровье: {pok.hp} HP\n"
+        info_text += f"Сила: {pok.power}\n"
+        info_text += f"Голод: {pok.hunger}%\n"
+        
+        
+        bot.send_message(message.chat.id, info_text)
+    else:
+        bot.reply_to(message, "У тебя еще нет покемона! Используй /start чтобы создать своего покемона.")
+
 
 bot.infinity_polling(none_stop=True)
